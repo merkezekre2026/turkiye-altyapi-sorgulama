@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Türkiye Altyapı Sorgulama</title>
+  <meta name="description" content="Türkiye'de ev internet altyapınızı sorgulayın: adres kodu ile sağlayıcı sorgusu, bağlantı bilgileri, hız testi ve santral mesafesine göre hız tahmini.">
+  <meta name="theme-color" content="#0b5cad">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23e30a17'/%3E%3Cpath d='M8 21a11 11 0 0 1 16 0M11 17.5a7 7 0 0 1 10 0' stroke='white' stroke-width='2.4' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='23.5' r='2' fill='white'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <h1>Türkiye Altyapı Sorgulama</h1>
+      <p class="lead">Adresinizdeki internet altyapısını öğrenin, bağlantınızı test edin ve alabileceğiniz hızı tahmin edin.</p>
+    </div>
+  </header>
+
+  <nav class="tabs wrap" role="tablist" aria-label="Bölümler">
+    <button role="tab" id="tab-sorgu" aria-controls="panel-sorgu" aria-selected="true">Altyapı Sorgula</button>
+    <button role="tab" id="tab-baglanti" aria-controls="panel-baglanti" aria-selected="false" tabindex="-1">Bağlantım</button>
+    <button role="tab" id="tab-hiztesti" aria-controls="panel-hiztesti" aria-selected="false" tabindex="-1">Hız Testi</button>
+    <button role="tab" id="tab-tahmin" aria-controls="panel-tahmin" aria-selected="false" tabindex="-1">Hız Tahmini</button>
+    <button role="tab" id="tab-rehber" aria-controls="panel-rehber" aria-selected="false" tabindex="-1">Rehber</button>
+  </nav>
+
+  <main class="wrap">
+    <!-- ALTYAPI SORGULA -->
+    <section role="tabpanel" id="panel-sorgu" aria-labelledby="tab-sorgu">
+      <div class="card">
+        <h2>Adres kodu ile altyapı sorgula</h2>
+        <p class="muted">Altyapı bilgisi (ADSL / VDSL / Fiber, port durumu, santral mesafesi) yalnızca işletmecilerin kendi sistemlerinde tutulur ve tarayıcıdan doğrudan sorgulanmasına izin verilmez. Bu araç adres kodunuzu doğrular, bölgenize uygun sağlayıcıları listeler ve kodu kopyalayıp resmi sorgu sayfalarına yönlendirir.</p>
+
+        <form id="sorgu-form" class="grid-form" novalidate>
+          <label>İl
+            <select id="il" required>
+              <option value="">İl seçin…</option>
+            </select>
+          </label>
+          <label>İlçe <span class="muted">(isteğe bağlı)</span>
+            <input id="ilce" type="text" autocomplete="address-level2" placeholder="ör. Kadıköy">
+          </label>
+          <label class="full">Adres kodu (UAVT) veya BBK kodu
+            <input id="adres-kodu" type="text" inputmode="numeric" autocomplete="off" placeholder="10 haneli adres kodu veya BBK kodu" maxlength="12">
+            <small class="muted">Adres kodunuzu <a href="https://www.turkiye.gov.tr/adres-bilgilerim" target="_blank" rel="noopener">e-Devlet › Adres Bilgilerim</a> sayfasından öğrenebilirsiniz. BBK kodu faturanızda veya Türk Telekom sorgusunda yer alır.</small>
+          </label>
+          <div class="full actions">
+            <button type="submit" class="btn primary">Sorgula</button>
+            <span id="form-hata" class="error" role="alert"></span>
+          </div>
+        </form>
+      </div>
+
+      <div id="sorgu-sonuc" hidden>
+        <div class="card">
+          <div class="result-head">
+            <div>
+              <h2 id="sonuc-baslik">Sonuç</h2>
+              <p id="sonuc-ozet" class="muted"></p>
+            </div>
+            <button id="kopyala" class="btn" type="button">Kodu kopyala</button>
+          </div>
+          <ol class="steps">
+            <li>Kodunuz panoya kopyalandı (ya da <strong>Kodu kopyala</strong>'ya basın).</li>
+            <li>Aşağıdan bir sağlayıcı seçip sitesindeki <strong>Altyapı Sorgulama</strong> formuna kodu yapıştırın.</li>
+            <li>Sonuçtaki altyapı türünü, boş port durumunu ve santral mesafesini not alıp <a href="#" data-goto="tahmin">Hız Tahmini</a> sekmesinde değerlendirin.</li>
+          </ol>
+        </div>
+        <div id="saglayici-listesi" class="provider-grid"></div>
+      </div>
+    </section>
+
+    <!-- BAĞLANTIM -->
+    <section role="tabpanel" id="panel-baglanti" aria-labelledby="tab-baglanti" hidden>
+      <div class="card">
+        <div class="result-head">
+          <div>
+            <h2>Mevcut bağlantınız</h2>
+            <p class="muted">IP adresinizden İSS'nizi ve konumunuzu tahmin eder. Bilgiler ipwho.is ve Cloudflare üzerinden alınır, hiçbir yerde saklanmaz.</p>
+          </div>
+          <button id="baglanti-yenile" class="btn" type="button">Yenile</button>
+        </div>
+        <dl id="baglanti-bilgi" class="info-grid">
+          <div><dt>Durum</dt><dd>Yükleniyor…</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <!-- HIZ TESTİ -->
+    <section role="tabpanel" id="panel-hiztesti" aria-labelledby="tab-hiztesti" hidden>
+      <div class="card">
+        <h2>Hız testi</h2>
+        <p class="muted">Cloudflare'in en yakın sunucusuna gecikme, indirme ve yükleme ölçümü yapar. En doğru sonuç için kablolu bağlantı kullanın ve diğer indirmeleri durdurun.</p>
+        <div class="meters">
+          <div class="meter"><span class="meter-label">Gecikme</span><span class="meter-value" id="m-ping">–</span><span class="meter-unit">ms</span></div>
+          <div class="meter"><span class="meter-label">Dalgalanma</span><span class="meter-value" id="m-jitter">–</span><span class="meter-unit">ms</span></div>
+          <div class="meter"><span class="meter-label">İndirme</span><span class="meter-value" id="m-down">–</span><span class="meter-unit">Mbps</span></div>
+          <div class="meter"><span class="meter-label">Yükleme</span><span class="meter-value" id="m-up">–</span><span class="meter-unit">Mbps</span></div>
+        </div>
+        <div class="progress" aria-hidden="true"><div id="test-bar"></div></div>
+        <div class="actions">
+          <button id="test-baslat" class="btn primary" type="button">Testi başlat</button>
+          <span id="test-durum" class="muted" aria-live="polite"></span>
+        </div>
+        <p id="test-yorum" class="note" hidden></p>
+      </div>
+    </section>
+
+    <!-- HIZ TAHMİNİ -->
+    <section role="tabpanel" id="panel-tahmin" aria-labelledby="tab-tahmin" hidden>
+      <div class="card">
+        <h2>Santral / kabin mesafesine göre hız tahmini</h2>
+        <p class="muted">Bakır hatlarda (ADSL/VDSL) hız, santrale veya saha dolabına olan kablo mesafesiyle düşer. Sorgu sonucunda gördüğünüz mesafeyi girin.</p>
+        <div class="grid-form">
+          <label class="full">Mesafe: <strong><output id="mesafe-cikti">1000</output> m</strong>
+            <input id="mesafe" type="range" min="0" max="6000" step="50" value="1000">
+          </label>
+          <label>Mesafeyi elle girin (m)
+            <input id="mesafe-sayi" type="number" min="0" max="6000" step="10" value="1000">
+          </label>
+          <label>Port / altyapı türü
+            <select id="altyapi-turu">
+              <option value="vdsl2">VDSL2</option>
+              <option value="vectoring">VDSL2 + Vectoring</option>
+              <option value="adsl2">ADSL2+</option>
+            </select>
+          </label>
+        </div>
+        <div class="estimate">
+          <div class="big"><span id="tahmin-hiz">–</span> <small>Mbps</small></div>
+          <div>
+            <p id="tahmin-paket"></p>
+            <p class="muted">Tahmini hat zayıflaması: <strong id="tahmin-zayiflama">–</strong> dB</p>
+          </div>
+        </div>
+        <canvas id="tahmin-grafik" width="760" height="260" aria-label="Mesafeye göre tahmini hız grafiği" role="img"></canvas>
+        <p class="note">Değerler 0,4 mm bakır kablo için kaba yaklaşık değerlerdir. Kablo kalitesi, ek yerleri, hat gürültüsü ve modem, gerçek senkron hızını ciddi ölçüde değiştirebilir. Fiber (FTTH) hatlarda mesafe hızı pratikte etkilemez.</p>
+      </div>
+    </section>
+
+    <!-- REHBER -->
+    <section role="tabpanel" id="panel-rehber" aria-labelledby="tab-rehber" hidden>
+      <div class="card">
+        <h2>Altyapı türleri</h2>
+        <div class="tech-grid">
+          <article><h3>ADSL / ADSL2+</h3><p>Telefon bakır hattı üzerinden, santrale bağlı. Pratikte en fazla ~24 Mbps; mesafe arttıkça hız hızla düşer.</p></article>
+          <article><h3>VDSL2</h3><p>Bakır hat, genellikle yakındaki saha dolabına (kabin) bağlı. 1 km altında 35–100 Mbps mümkündür.</p></article>
+          <article><h3>FTTC / FTTB</h3><p>Fiber kabine veya bina girişine kadar gelir, son kısım bakırdır. Hız kabin/bina mesafesine bağlıdır.</p></article>
+          <article><h3>FTTH (Fiber)</h3><p>Fiber doğrudan evinize kadar gelir. 100 Mbps–1 Gbps ve üzeri, mesafeden bağımsız.</p></article>
+          <article><h3>Kablo internet</h3><p>Kablo TV koaksiyel şebekesi (DOCSIS). Yalnızca kablo altyapısı olan mahallelerde.</p></article>
+          <article><h3>Mobil / 5G ev interneti</h3><p>Sabit altyapı olmayan yerlerde 4.5G/5G modemle sabit internet alternatifi; kotalı olabilir.</p></article>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Sık sorulan sorular</h2>
+        <details><summary>Adres kodu (UAVT) ile BBK kodu arasındaki fark nedir?</summary>
+          <p>Adres kodu, İçişleri Bakanlığı'nın Ulusal Adres Veri Tabanı'ndaki (UAVT) 10 haneli bağımsız bölüm kodudur ve e-Devlet'te görünür. BBK (Bina Bazlı Kod) ise Türk Telekom'un bina için kullandığı koddur. Sağlayıcıların çoğu adres seçimiyle ya da bu kodlardan biriyle sorgu yapar.</p></details>
+        <details><summary>"Boş port yok" ne demek?</summary>
+          <p>Bağlı olduğunuz santral veya saha dolabında yeni abone için boş bağlantı noktası kalmamıştır. İşletmeci kapasite artırana kadar yeni abonelik açılamayabilir; farklı bir altyapı sahibinin (ör. kendi fiberi olan sağlayıcı) şebekesini deneyebilirsiniz.</p></details>
+        <details><summary>Neden bu site sonucu doğrudan göstermiyor?</summary>
+          <p>İşletmecilerin altyapı servisleri yalnızca kendi sitelerinden çağrılmaya izin verir (CORS) ve çoğu bot korumalıdır. Statik bir GitHub Pages sitesi bu servisleri güvenli ve izinli şekilde çağıramaz; bu yüzden kodunuzu hazırlayıp resmi sayfaya yönlendiriyoruz. Hiçbir adres veya kod bilgisi sunucuya gönderilmez.</p></details>
+        <details><summary>Taahhüdüm varken sağlayıcı değiştirebilir miyim?</summary>
+          <p>Değiştirebilirsiniz; ancak kalan taahhüt süresine ait indirimler cayma bedeli olarak istenebilir. Taşınma durumunda e-Devlet üzerinden abonelik nakli başvurusu yapabilirsiniz.</p></details>
+        <details><summary>Hızım neden paketimden düşük?</summary>
+          <p>Modem arayüzündeki "senkron hızı" ve "SNR marjı" değerlerine bakın. Senkron hızı düşükse sorun hattadır (mesafe, ek yeri, kablo); senkron yüksek ama test düşükse sorun Wi-Fi, cihaz veya ağ yoğunluğu olabilir.</p></details>
+      </div>
+
+      <div class="card">
+        <h2>Resmi bağlantılar</h2>
+        <ul id="resmi-liste" class="link-list"></ul>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer wrap">
+    <p>Bu site bağımsız ve açık kaynaklı bir projedir; hiçbir işletmeci veya kamu kurumuyla bağlantısı yoktur. Bilgiler bilgilendirme amaçlıdır. Kaynak kodu <a href="https://github.com/merkezekre2026/turkiye-altyapi-sorgulama" target="_blank" rel="noopener">GitHub</a>'da.</p>
+  </footer>
+
+  <script src="assets/data.js"></script>
+  <script src="assets/app.js"></script>
+</body>
+</html>
